@@ -10,7 +10,7 @@ Parses the custom extensions on YubiHSM 2 attestation certificates and displays 
 ## Installation
 
 ```
-go install github.com/YubicoLabs/yubihsm-parse-attestation
+go install github.com/YubicoLabs/yubihsm-parse-attestation@latest
 ```
 
 ## Usage
