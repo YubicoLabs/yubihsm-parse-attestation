@@ -15,6 +15,8 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/binary"
@@ -22,6 +24,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os"
 
 	"github.com/ghodss/yaml"
@@ -104,6 +107,11 @@ type yubihsmAttestation struct {
 		Capabilities []string `json:"capabilities"`
 		ID           int      `json:"id"`
 		Label        string   `json:"label"`
+		Algorithm    string   `json:"algorithm"`
+		Size         int      `json:"size"`
+		RSAModulus   *big.Int `json:"modulus,omitempty"`
+		RSAExponent  int      `json:"exponent,omitempty"`
+		CurveName    string   `json:"curve,omitempty"`
 	} `json:"key"`
 }
 
@@ -170,6 +178,23 @@ func parseAttestation(path string) (*yubihsmAttestation, error) {
 	}
 
 	var parsed yubihsmAttestation
+
+	switch key := cert.PublicKey.(type) {
+	case *rsa.PublicKey:
+		parsed.Key.Algorithm = "RSA"
+		parsed.Key.RSAModulus = key.N
+		parsed.Key.RSAExponent = key.E
+		parsed.Key.Size = key.Size() * 8
+
+	case *ecdsa.PublicKey:
+		parsed.Key.Algorithm = "ECDSA"
+		parsed.Key.CurveName = key.Params().Name
+		parsed.Key.Size = key.Params().BitSize
+
+	default:
+		return nil, fmt.Errorf("unsupported public key type: %T", key)
+	}
+
 	for _, extension := range cert.Extensions {
 		switch {
 		case extension.Id.Equal(firmwareOID):
