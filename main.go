@@ -124,6 +124,11 @@ func main() {
 				return fmt.Errorf("bind format flag: %w", err)
 			}
 
+			format := viper.GetString("format")
+			if format != "yaml" && format != "json" {
+				return fmt.Errorf("unsupported output format: %s", format)
+			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -143,13 +148,12 @@ func main() {
 				if err != nil {
 					return fmt.Errorf("marshal parsed certificate: %w", err)
 				}
+
 			case "yaml":
 				marshalled, err = yaml.Marshal(parsed)
 				if err != nil {
 					return fmt.Errorf("marshal parsed certificate: %w", err)
 				}
-			default:
-				return fmt.Errorf("unsupported output format: %s", viper.GetString("format"))
 			}
 
 			fmt.Printf("%s", string(marshalled))
