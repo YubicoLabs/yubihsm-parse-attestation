@@ -9,6 +9,8 @@ Parses the custom extensions on YubiHSM 2 attestation certificates and displays 
 
 ## Installation
 
+Binaries are available on the [Releases](https://github.com/YubicoLabs/yubihsm-parse-attestation/releases) page. You can also install from source using the command below.
+
 ```
 go install github.com/YubicoLabs/yubihsm-parse-attestation@latest
 ```
