@@ -93,6 +93,13 @@ var (
 		"delete_template",
 		"delete_otp_aead_key",
 		"change_authentication_key",
+		"put_symmetric_key",
+		"generate_symmetric_key",
+		"delete_symmetric_key",
+		"decrypt_ecb",
+		"encrypt_ecb",
+		"decrypt_cbc",
+		"encrypt_cbc",
 	}
 )
 
