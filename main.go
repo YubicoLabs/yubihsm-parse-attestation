@@ -42,6 +42,7 @@ var (
 	capabilitiesOID = append(baseOID, 5)
 	objectIDOID     = append(baseOID, 6)
 	labelOID        = append(baseOID, 9)
+	fipsOID         = append(baseOID, 12)
 
 	// YubiHSM origins
 	// Do not change the order of these items, as the order relates to a bitmask
@@ -126,6 +127,7 @@ type yubihsmAttestation struct {
 		Capabilities []string `json:"capabilities"`
 		ID           int      `json:"id"`
 		Label        string   `json:"label"`
+		FIPS         bool     `json:"fips"`
 		Algorithm    string   `json:"algorithm"`
 		Size         int      `json:"size"`
 		RSAModulus   *big.Int `json:"modulus,omitempty"`
@@ -271,6 +273,12 @@ func parseAttestation(path string) (*yubihsmAttestation, error) {
 				return nil, fmt.Errorf("parse object label: %w", err)
 			}
 			parsed.Key.Label = label
+		case extension.Id.Equal(fipsOID):
+			var fips bool
+			if _, err := asn1.Unmarshal(extension.Value, &fips); err != nil {
+				return nil, fmt.Errorf("parse object fips: %w", err)
+			}
+			parsed.Key.FIPS = fips
 
 		default:
 			return nil, fmt.Errorf("unhandled extension oid: %v", extension.Id)
