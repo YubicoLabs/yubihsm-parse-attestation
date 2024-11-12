@@ -122,7 +122,7 @@ type yubihsmAttestation struct {
 		Serial   int    `json:"serial"`
 	} `json:"device"`
 	Key struct {
-		Origins      []string `json:"origins"`
+		Origin       []string `json:"origin"`
 		Domains      []int    `json:"domains"`
 		Capabilities []string `json:"capabilities"`
 		ID           int      `json:"id"`
@@ -239,10 +239,10 @@ func parseAttestation(path string) (*yubihsmAttestation, error) {
 		case extension.Id.Equal(originOID):
 			var bs asn1.BitString
 			if _, err := asn1.Unmarshal(extension.Value, &bs); err != nil {
-				return nil, fmt.Errorf("parse origins: %w", err)
+				return nil, fmt.Errorf("parse origin: %w", err)
 			}
-			origins := parseOrigins((uint8(bs.Bytes[0])))
-			parsed.Key.Origins = origins
+			origin := parseOrigins((uint8(bs.Bytes[0])))
+			parsed.Key.Origin = origin
 
 		case extension.Id.Equal(domainsOID):
 			var bs asn1.BitString
