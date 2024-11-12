@@ -43,6 +43,16 @@ var (
 	objectIDOID     = append(baseOID, 6)
 	labelOID        = append(baseOID, 9)
 
+	// YubiHSM origins
+	// Do not change the order of these items, as the order relates to a bitmask
+	origins = []string{
+		"generated",
+		"imported",
+		"undefined",
+		"undefined",
+		"imported_wrapped",
+	}
+
 	// YubiHSM capabilities
 	// Do not change the order of these items, as the order relates to a bitmask
 	capabilities = []string{
@@ -93,6 +103,13 @@ var (
 		"delete_template",
 		"delete_otp_aead_key",
 		"change_authentication_key",
+		"put_symmetric_key",
+		"generate_symmetric_key",
+		"delete_symmetric_key",
+		"decrypt_ecb",
+		"encrypt_ecb",
+		"decrypt_cbc",
+		"encrypt_cbc",
 	}
 )
 
@@ -102,7 +119,7 @@ type yubihsmAttestation struct {
 		Serial   int    `json:"serial"`
 	} `json:"device"`
 	Key struct {
-		Origin       string   `json:"origin"`
+		Origins      []string `json:"origins"`
 		Domains      []int    `json:"domains"`
 		Capabilities []string `json:"capabilities"`
 		ID           int      `json:"id"`
@@ -218,14 +235,10 @@ func parseAttestation(path string) (*yubihsmAttestation, error) {
 		case extension.Id.Equal(originOID):
 			var bs asn1.BitString
 			if _, err := asn1.Unmarshal(extension.Value, &bs); err != nil {
-				return nil, fmt.Errorf("parse origin: %w", err)
+				return nil, fmt.Errorf("parse origins: %w", err)
 			}
-			origin := int(bs.Bytes[0])
-			if origin == 1 {
-				parsed.Key.Origin = "generated"
-			} else {
-				parsed.Key.Origin = "imported"
-			}
+			origins := parseOrigins((uint8(bs.Bytes[0])))
+			parsed.Key.Origins = origins
 
 		case extension.Id.Equal(domainsOID):
 			var bs asn1.BitString
@@ -286,5 +299,16 @@ func parseCapabilities(input uint64) []string {
 		}
 	}
 
+	return results
+}
+
+func parseOrigins(input uint8) []string {
+	var results []string
+	for i := 0; i < len(origins); i++ {
+		mask := uint8(1 << i)
+		if mask&input != 0 {
+			results = append(results, origins[i])
+		}
+	}
 	return results
 }
