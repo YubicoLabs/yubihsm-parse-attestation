@@ -42,6 +42,7 @@ var (
 	capabilitiesOID = append(baseOID, 5)
 	objectIDOID     = append(baseOID, 6)
 	labelOID        = append(baseOID, 9)
+	fipsOID         = append(baseOID, 12)
 
 	// YubiHSM origins
 	// Do not change the order of these items, as the order relates to a bitmask
@@ -110,6 +111,8 @@ var (
 		"encrypt_ecb",
 		"decrypt_cbc",
 		"encrypt_cbc",
+		"put-public-wrap-key",
+		"delete-public-wrap-key",
 	}
 )
 
@@ -119,11 +122,12 @@ type yubihsmAttestation struct {
 		Serial   int    `json:"serial"`
 	} `json:"device"`
 	Key struct {
-		Origins      []string `json:"origins"`
+		Origin       []string `json:"origin"`
 		Domains      []int    `json:"domains"`
 		Capabilities []string `json:"capabilities"`
 		ID           int      `json:"id"`
 		Label        string   `json:"label"`
+		FIPS         bool     `json:"fips"`
 		Algorithm    string   `json:"algorithm"`
 		Size         int      `json:"size"`
 		RSAModulus   *big.Int `json:"modulus,omitempty"`
@@ -235,10 +239,10 @@ func parseAttestation(path string) (*yubihsmAttestation, error) {
 		case extension.Id.Equal(originOID):
 			var bs asn1.BitString
 			if _, err := asn1.Unmarshal(extension.Value, &bs); err != nil {
-				return nil, fmt.Errorf("parse origins: %w", err)
+				return nil, fmt.Errorf("parse origin: %w", err)
 			}
-			origins := parseOrigins((uint8(bs.Bytes[0])))
-			parsed.Key.Origins = origins
+			origin := parseOrigins((uint8(bs.Bytes[0])))
+			parsed.Key.Origin = origin
 
 		case extension.Id.Equal(domainsOID):
 			var bs asn1.BitString
@@ -269,6 +273,12 @@ func parseAttestation(path string) (*yubihsmAttestation, error) {
 				return nil, fmt.Errorf("parse object label: %w", err)
 			}
 			parsed.Key.Label = label
+		case extension.Id.Equal(fipsOID):
+			var fips bool
+			if _, err := asn1.Unmarshal(extension.Value, &fips); err != nil {
+				return nil, fmt.Errorf("parse object fips: %w", err)
+			}
+			parsed.Key.FIPS = fips
 
 		default:
 			return nil, fmt.Errorf("unhandled extension oid: %v", extension.Id)
