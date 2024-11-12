@@ -110,6 +110,8 @@ var (
 		"encrypt_ecb",
 		"decrypt_cbc",
 		"encrypt_cbc",
+		"put-public-wrap-key",
+		"delete-public-wrap-key",
 	}
 )
 
