@@ -127,7 +127,7 @@ type yubihsmAttestation struct {
 		Capabilities []string `json:"capabilities"`
 		ID           int      `json:"id"`
 		Label        string   `json:"label"`
-		FIPS         bool     `json:"fips"`
+		FIPS         bool     `json:"fips,omitempty"`
 		Algorithm    string   `json:"algorithm"`
 		Size         int      `json:"size"`
 		RSAModulus   *big.Int `json:"modulus,omitempty"`
